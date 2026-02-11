@@ -5,8 +5,7 @@ pub fn run() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     defer _ = gpa.deinit();
 
-    // var app = try App.init(gpa.allocator());
-    var app = try App.init();
+    var app = try App.init(gpa.allocator());
     defer app.deinit();
 
     try app.run();

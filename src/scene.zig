@@ -1,79 +1,43 @@
+const std = @import("std");
 const zm = @import("zmath");
 const Renderer = @import("graphics/renderer.zig").Renderer;
 const VertexArray = @import("graphics/vertex_array.zig").VertexArray;
 const Mesh = @import("graphics/mesh.zig").Mesh;
 const Shader = @import("graphics/shader.zig").Shader;
+const Entity = @import("graphics/entity.zig").Entity;
 const Camera = @import("camera.zig").Camera;
+const Cube = @import("objects/cube.zig").Cube;
+const Drawable = @import("objects/drawable.zig").Drawable;
 
 pub const Scene = struct {
-    mesh: Mesh,
-    shader: Shader,
+    allocator: std.mem.Allocator,
+
     renderer: Renderer,
     camera: Camera,
+    cube: Cube,
 
-    rot: f32,
-
-    pub fn init(renderer: Renderer) !Scene {
-        const vt = [_]f32{
-            -0.5, -0.5, -0.5, 1.0, 0.0, 0.0,
-            0.5,  -0.5, -0.5, 0.0, 1.0, 0.0,
-            0.5,  0.5,  -0.5, 0.0, 0.0, 1.0,
-            -0.5, 0.5,  -0.5, 1.0, 1.0, 0.0,
-            -0.5, -0.5, 0.5,  1.0, 0.0, 1.0,
-            0.5,  -0.5, 0.5,  0.0, 1.0, 1.0,
-            0.5,  0.5,  0.5,  1.0, 1.0, 1.0,
-            -0.5, 0.5,  0.5,  0.2, 0.2, 0.2,
-        };
-        const ib = [_]u32{
-            0, 1, 2,
-            2, 3, 0,
-            4, 6, 5,
-            6, 4, 7,
-            0, 3, 7,
-            7, 4, 0,
-            1, 5, 6,
-            6, 2, 1,
-            0, 4, 5,
-            5, 1, 0,
-            3, 2, 6,
-            6, 7, 3,
-        };
-        const li = [_]u32{ 3, 3 };
-
+    pub fn init(allocator: std.mem.Allocator, renderer: Renderer) !Scene {
         const aspect = @as(f32, @floatFromInt(800)) / @as(f32, @floatFromInt(600));
 
-        return .{
-            .mesh = Mesh.init(&vt, &ib, &li),
-            .shader = try Shader.init(@embedFile("shaders/vert2.glsl"), @embedFile("shaders/frag2.glsl")),
+        return Scene{
+            .allocator = allocator,
             .renderer = renderer,
             .camera = Camera.init(aspect),
-            .rot = 0.0,
+            .cube = try Cube.init(),
         };
     }
 
-    fn get_mvp(self: *Scene) [16]f32 {
-        const r1 = zm.rotationX(self.rot * 2);
-        const r2 = zm.rotationY(self.rot * 3);
-        const r3 = zm.rotationZ(-self.rot * 6);
-
-        const model = zm.mul(zm.mul(r3, r2), r1);
-
-        const mvp_rm = zm.mul(zm.mul(model, self.camera.view), self.camera.projection);
-
-        var mvp_array: [16]f32 = undefined;
-
-        zm.storeMat(&mvp_array, mvp_rm);
-
-        return mvp_array;
+    pub fn deinit(self: *Scene) void {
+        _ = self;
     }
 
     pub fn update(self: *Scene) void {
-        self.rot = self.rot + 0.02;
-        self.shader.setu_mvp(self.get_mvp());
+        self.cube.update(&self.camera);
     }
 
     pub fn draw(self: *Scene) void {
         self.renderer.clear();
-        self.renderer.draw_mesh(self.mesh, self.shader);
+
+        self.cube.draw(&self.renderer, &self.camera);
     }
 };

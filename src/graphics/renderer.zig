@@ -8,7 +8,7 @@ pub const Renderer = struct {
         return Renderer{};
     }
 
-    pub fn draw_mesh(self: Renderer, mesh: Mesh, shader: Shader) void {
+    pub fn drawMesh(self: Renderer, mesh: Mesh, shader: Shader) void {
         _ = self;
         shader.bind();
         mesh.bind();

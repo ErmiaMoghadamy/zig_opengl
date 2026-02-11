@@ -9,6 +9,7 @@ pub const App = struct {
     const width: i32 = 800;
     const height: i32 = 600;
 
+    allocator: std.mem.Allocator,
     window: *glfw.Window,
     renderer: Renderer,
     scene: Scene,
@@ -19,7 +20,7 @@ pub const App = struct {
     last_h: i32 = 0,
     pending_resize: bool = true, // apply once on startup
 
-    pub fn init() !App {
+    pub fn init(allocator: std.mem.Allocator) !App {
         try glfw.init();
         errdefer glfw.terminate();
 
@@ -38,10 +39,14 @@ pub const App = struct {
 
         const renderer = try Renderer.init();
 
+        var scene = try Scene.init(allocator, renderer);
+        defer scene.deinit();
+
         return .{
+            .allocator = allocator,
             .window = window,
             .renderer = renderer,
-            .scene = try Scene.init(renderer),
+            .scene = scene,
         };
     }
 
