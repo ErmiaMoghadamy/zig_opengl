@@ -1,5 +1,6 @@
 const std = @import("std");
 const glfw = @import("zglfw");
+const zgui = @import("zgui");
 const zgl = @import("zopengl");
 const gl = zgl.bindings;
 const Renderer = @import("graphics/renderer.zig").Renderer;
@@ -32,6 +33,11 @@ pub const App = struct {
 
         try zgl.loadCoreProfile(glfw.getProcAddress, 4, 6);
 
+        zgui.init(allocator);
+        errdefer zgui.deinit();
+        zgui.backend.init(window);
+        errdefer zgui.backend.deinit();
+
         gl.viewport(0, 0, width, height);
         gl.enable(gl.DEPTH_TEST);
         gl.enable(gl.BLEND);
@@ -40,7 +46,7 @@ pub const App = struct {
         const renderer = try Renderer.init();
 
         var scene = try Scene.init(allocator, renderer);
-        defer scene.deinit();
+        errdefer scene.deinit();
 
         return .{
             .allocator = allocator,
@@ -51,6 +57,11 @@ pub const App = struct {
     }
 
     pub fn deinit(self: *App) void {
+        self.scene.deinit();
+
+        zgui.backend.deinit();
+        zgui.deinit();
+
         self.window.destroy();
         glfw.terminate();
     }
@@ -58,6 +69,25 @@ pub const App = struct {
     pub fn render(self: *App) void {
         self.scene.update();
         self.scene.draw();
+    }
+
+    pub fn drawUi(self: *App) void {
+        const fb = self.window.getFramebufferSize();
+        if (fb[0] == 0 or fb[1] == 0) return;
+        zgui.backend.newFrame(@intCast(fb[0]), @intCast(fb[1]));
+        _ = zgui.begin("DEBUG BOX", .{});
+
+        if (zgui.button("Right", .{})) {
+            self.scene.MoveBox(0.1);
+        }
+
+        if (zgui.button("Left", .{})) {
+            self.scene.MoveBox(-0.1);
+        }
+
+        zgui.end();
+        zgui.render();
+        zgui.backend.draw();
     }
 
     pub fn run(self: *App) !void {
@@ -69,6 +99,7 @@ pub const App = struct {
             glfw.pollEvents();
             self.handleResize();
             self.render();
+            self.drawUi();
             self.window.swapBuffers();
         }
     }

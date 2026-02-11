@@ -31,6 +31,10 @@ pub const Scene = struct {
         _ = self;
     }
 
+    pub fn MoveBox(self: *Scene, r: f32) void {
+        self.cube.move(r);
+    }
+
     pub fn update(self: *Scene) void {
         self.cube.update(&self.camera);
     }

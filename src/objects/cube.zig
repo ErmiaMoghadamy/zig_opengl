@@ -60,7 +60,7 @@ pub const Cube = struct {
 
     pub fn move(self: *Cube, r: f32) void {
         self.position[0] += r;
-        self.position[1] += r;
+        // self.position[1] += r;
     }
 
     pub fn update(self: *Cube, camera: *Camera) void {
