@@ -83,7 +83,7 @@ pub const Shader = struct {
     pub fn setu_mvp(self: Shader, mat: [16]f32) void {
         self.bind();
 
-        const location = gl.getUniformLocation(self.id, "u_MPV");
+        const location = gl.getUniformLocation(self.id, "uMVP");
 
         gl.uniformMatrix4fv(location, 1, 0, &mat);
     }

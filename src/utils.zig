@@ -1,18 +1,32 @@
 const std = @import("std");
 const zgui = @import("zgui");
 const zglfw = @import("zglfw");
-const zstbi = @import("zstbi");
 const zm = @import("zmath");
+const zstbi = @import("zstbi");
 
 pub fn show_ui(window: *zglfw.Window) !void {
     const fb = window.getFramebufferSize();
+    if (fb[0] == 0 or fb[1] == 0) return;
     zgui.backend.newFrame(@intCast(fb[0]), @intCast(fb[1]));
 
-    _ = zgui.begin("Hello", .{});
-    zgui.text("ok", .{});
+    _ = zgui.begin("DEBUG BOX", .{});
+
+    _ = zgui.text("Hello", .{});
+
+    // _ = zgui.sliderInt("Rotation X", .{ .v = rot_x, .min = -10, .max = 10 });
+    // _ = zgui.sliderInt("Rotation Y", .{ .v = rot_y, .min = -10, .max = 10 });
+    // _ = zgui.sliderInt("Rotation Z", .{ .v = rot_z, .min = -10, .max = 10 });
+    // _ = zgui.sliderFloat("Scale", .{ .v = scale, .min = -5, .max = 5 });
+
     zgui.end();
     zgui.render();
     zgui.backend.draw();
+}
+
+pub fn mat2arr(mat: zm.Mat) [16]f32 {
+    var arr: [16]f32 = undefined;
+    zm.storeMat(&arr, mat);
+    return arr;
 }
 
 pub const RgbaImage = struct {

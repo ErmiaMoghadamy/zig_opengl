@@ -3,13 +3,11 @@
 layout(location = 0) in vec3 aPos;
 layout(location = 1) in vec3 aColor;
 
-// out vec2 v_TexCoords;
 out vec3 vColor;
 
-uniform mat4 u_MPV;
+uniform mat4 uMVP;
 
 void main() {
-    gl_Position = u_MPV * vec4(aPos, 1.0);
-    // v_TexCoords = tCoord;
+    gl_Position = uMVP * vec4(aPos, 1.0);
     vColor = aColor;
 }

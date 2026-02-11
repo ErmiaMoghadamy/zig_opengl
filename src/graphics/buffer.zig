@@ -43,6 +43,6 @@ pub const IndexBuffer = struct {
 
     pub fn unbind(self: IndexBuffer) void {
         _ = self;
-        gl.glBindBuffer(gl.ELEMENT_ARRAY_BUFFER, 0);
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, 0);
     }
 };
