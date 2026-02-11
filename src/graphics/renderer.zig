@@ -8,10 +8,12 @@ pub const Renderer = struct {
         return Renderer{};
     }
 
-    pub fn draw(self: Renderer, vao: VertexArray, shader: Shader) void {
+    pub fn draw_mesh(self: Renderer, mesh: Mesh, shader: Shader) void {
         _ = self;
         shader.bind();
-        vao.draw();
+        mesh.bind();
+        gl.drawElements(gl.TRIANGLES, mesh.index_count, gl.UNSIGNED_INT, null);
+        mesh.unbind();
     }
 
     pub fn clear(self: Renderer) void {

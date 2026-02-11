@@ -27,7 +27,7 @@ pub const App = struct {
         errdefer window.destroy();
 
         glfw.makeContextCurrent(window);
-        glfw.swapInterval(0);
+        glfw.swapInterval(1);
 
         try zgl.loadCoreProfile(glfw.getProcAddress, 4, 6);
 

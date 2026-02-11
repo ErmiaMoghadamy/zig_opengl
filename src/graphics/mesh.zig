@@ -7,25 +7,21 @@ pub const Mesh = struct {
     vbo: VertexBuffer,
     ebo: IndexBuffer,
     vao: VertexArray,
+    index_count: c_int,
 
     pub fn init(vertices: []const f32, indices: []const u32, layout: []const u32) Mesh {
         var mesh = Mesh{
             .vbo = VertexBuffer.init(vertices),
             .ebo = IndexBuffer.init(indices),
             .vao = VertexArray.init(layout),
+            .index_count = @intCast(indices.len),
         };
 
-        mesh.vao.setup_layout();
+        mesh.vao.unbind();
         return mesh;
     }
 
-    pub fn draw(self: *Mesh) void {
-        self.bind();
-        gl.drawElements(gl.TRIANGLES, self.ebo.count, gl.UNSIGNED_INT, null);
-        self.unbind();
-    }
-
-    pub fn bind(self: *Mesh) void {
+    pub fn bind(self: Mesh) void {
         self.vao.bind();
         self.vbo.bind();
         self.ebo.bind();

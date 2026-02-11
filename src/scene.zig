@@ -6,7 +6,7 @@ const Shader = @import("graphics/shader.zig").Shader;
 const Camera = @import("camera.zig").Camera;
 
 pub const Scene = struct {
-    vao: VertexArray,
+    mesh: Mesh,
     shader: Shader,
     renderer: Renderer,
     camera: Camera,
@@ -43,7 +43,7 @@ pub const Scene = struct {
         const aspect = @as(f32, @floatFromInt(800)) / @as(f32, @floatFromInt(600));
 
         return .{
-            .vao = VertexArray.init(&vt, &ib, &li),
+            .mesh = Mesh.init(&vt, &ib, &li),
             .shader = try Shader.init(@embedFile("shaders/vert2.glsl"), @embedFile("shaders/frag2.glsl")),
             .renderer = renderer,
             .camera = Camera.init(aspect),
@@ -52,9 +52,9 @@ pub const Scene = struct {
     }
 
     fn get_mvp(self: *Scene) [16]f32 {
-        const r1 = zm.rotationX(self.rot * 0.02);
-        const r2 = zm.rotationY(self.rot * 0.03);
-        const r3 = zm.rotationZ(-self.rot * 0.06);
+        const r1 = zm.rotationX(self.rot * 2);
+        const r2 = zm.rotationY(self.rot * 3);
+        const r3 = zm.rotationZ(-self.rot * 6);
 
         const model = zm.mul(zm.mul(r3, r2), r1);
 
@@ -68,13 +68,12 @@ pub const Scene = struct {
     }
 
     pub fn update(self: *Scene) void {
-        self.rot = self.rot + 0.01;
+        self.rot = self.rot + 0.02;
         self.shader.setu_mvp(self.get_mvp());
     }
 
     pub fn draw(self: *Scene) void {
         self.renderer.clear();
-        self.shader.bind();
-        self.renderer.draw(self.vao, self.shader);
+        self.renderer.draw_mesh(self.mesh, self.shader);
     }
 };

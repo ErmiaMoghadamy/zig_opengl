@@ -5,15 +5,11 @@ const IndexBuffer = @import("./buffer.zig").IndexBuffer;
 
 pub const VertexArray = struct {
     id: u32,
-    vbo: VertexBuffer,
-    ebo: IndexBuffer,
     layout: []const u32,
 
-    pub fn init(vertices: []const f32, indices: []const u32, layout: []const u32) VertexArray {
+    pub fn init(layout: []const u32) VertexArray {
         var vao = VertexArray{
             .id = 0,
-            .vbo = VertexBuffer.init(vertices),
-            .ebo = IndexBuffer.init(indices),
             .layout = layout,
         };
 
@@ -23,19 +19,6 @@ pub const VertexArray = struct {
         vao.setup_layout();
 
         return vao;
-    }
-
-    pub fn indexCount(self: VertexArray) c_int {
-        return @intCast(self.ebo.count);
-    }
-
-    pub fn draw(self: VertexArray) void {
-        self.bind();
-
-        self.vbo.bind();
-        self.ebo.bind();
-
-        gl.drawElements(gl.TRIANGLES, self.indexCount(), gl.UNSIGNED_INT, null);
     }
 
     pub fn setup_layout(self: *VertexArray) void {
