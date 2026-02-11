@@ -15,6 +15,8 @@ pub const App = struct {
     renderer: Renderer,
     scene: Scene,
 
+    relative_pos: f32,
+
     fb_w: i32 = width,
     fb_h: i32 = height,
     last_w: i32 = 0,
@@ -49,6 +51,7 @@ pub const App = struct {
         errdefer scene.deinit();
 
         return .{
+            .relative_pos = 0.0,
             .allocator = allocator,
             .window = window,
             .renderer = renderer,
@@ -71,18 +74,26 @@ pub const App = struct {
         self.scene.draw();
     }
 
-    pub fn drawUi(self: *App) void {
+    pub fn drawUi(self: *App) !void {
         const fb = self.window.getFramebufferSize();
         if (fb[0] == 0 or fb[1] == 0) return;
         zgui.backend.newFrame(@intCast(fb[0]), @intCast(fb[1]));
         _ = zgui.begin("DEBUG BOX", .{});
 
-        if (zgui.button("Right", .{})) {
-            self.scene.MoveBox(0.1);
+        if (zgui.button("Add Cube", .{})) {
+            try self.scene.addCube();
         }
+        _ = zgui.sliderFloat("Move Cube", .{ .v = &self.relative_pos, .min = -4, .max = 4 });
 
-        if (zgui.button("Left", .{})) {
-            self.scene.MoveBox(-0.1);
+        self.scene.cubes.items[0].move(self.relative_pos);
+        if (self.scene.cubes.items.len > 3) {
+            self.scene.cubes.items[3].move(-self.relative_pos / 2.2);
+        }
+        if (self.scene.cubes.items.len > 2) {
+            self.scene.cubes.items[2].move(self.relative_pos / 2.2);
+        }
+        if (self.scene.cubes.items.len > 1) {
+            self.scene.cubes.items[1].move(-self.relative_pos);
         }
 
         zgui.end();
@@ -99,7 +110,7 @@ pub const App = struct {
             glfw.pollEvents();
             self.handleResize();
             self.render();
-            self.drawUi();
+            try self.drawUi();
             self.window.swapBuffers();
         }
     }

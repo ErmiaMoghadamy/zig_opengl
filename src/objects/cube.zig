@@ -50,7 +50,7 @@ pub const Cube = struct {
         const projection = camera.projection;
         const r1 = zm.rotationX(self.rotation);
         const r2 = zm.rotationY(self.rotation);
-        const r3 = zm.rotationZ(self.rotation);
+        const r3 = zm.rotationZ(0);
         const r = zm.mul(r1, zm.mul(r2, r3));
         const moves = zm.translation(self.position[0], self.position[1], self.position[2]);
         const model = zm.mul(r, moves);
@@ -59,7 +59,7 @@ pub const Cube = struct {
     }
 
     pub fn move(self: *Cube, r: f32) void {
-        self.position[0] += r;
+        self.position[0] = r;
         // self.position[1] += r;
     }
 

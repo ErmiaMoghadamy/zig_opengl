@@ -14,34 +14,41 @@ pub const Scene = struct {
 
     renderer: Renderer,
     camera: Camera,
-    cube: Cube,
+    cubes: std.ArrayList(Cube),
 
     pub fn init(allocator: std.mem.Allocator, renderer: Renderer) !Scene {
         const aspect = @as(f32, @floatFromInt(800)) / @as(f32, @floatFromInt(600));
 
-        return Scene{
+        var scene = Scene{
             .allocator = allocator,
             .renderer = renderer,
             .camera = Camera.init(aspect),
-            .cube = try Cube.init(),
+            .cubes = try std.ArrayList(Cube).initCapacity(allocator, 0),
         };
+
+        try scene.cubes.append(allocator, try Cube.init());
+
+        return scene;
     }
 
     pub fn deinit(self: *Scene) void {
-        _ = self;
-    }
-
-    pub fn MoveBox(self: *Scene, r: f32) void {
-        self.cube.move(r);
+        self.cubes.deinit(self.allocator);
     }
 
     pub fn update(self: *Scene) void {
-        self.cube.update(&self.camera);
+        for (self.cubes.items) |*cube| {
+            cube.update(&self.camera);
+        }
     }
 
     pub fn draw(self: *Scene) void {
         self.renderer.clear();
+        for (self.cubes.items) |*cube| {
+            cube.draw(&self.renderer, &self.camera);
+        }
+    }
 
-        self.cube.draw(&self.renderer, &self.camera);
+    pub fn addCube(self: *Scene) !void {
+        try self.cubes.append(self.allocator, try Cube.init());
     }
 };
