@@ -16,22 +16,22 @@ pub const Camera = struct {
         const pos = zm.f32x4(0.0, 0.0, 5.0, 1.0);
         const forward = zm.f32x4(0.0, 0.0, -1.0, 0.0);
 
-        var cam = Camera{
+        var camera = Camera{
             .position = zm.f32x4(0.0, 0.0, 5.0, 1.0),
             .target = pos + forward,
             .view = undefined,
             .projection = undefined,
 
-            .fov = 1.98539816339, // obviosly not 45°
+            .fov = 1.5,
             .aspect = aspect,
             .near = 0.1,
             .far = 100.0,
         };
 
-        cam.updateProjection();
-        cam.updateView();
+        camera.updateProjection();
+        camera.updateView();
 
-        return cam;
+        return camera;
     }
 
     pub fn updateFov(self: *Camera, fov: f32) void {

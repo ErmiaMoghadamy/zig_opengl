@@ -80,10 +80,10 @@ pub const Shader = struct {
         return Shader{ .id = id };
     }
 
-    pub fn setu_mvp(self: Shader, mat: [16]f32) void {
+    pub fn setu_mat(self: Shader, name: []const u8, mat: [16]f32) void {
         self.bind();
 
-        const location = gl.getUniformLocation(self.id, "uMVP");
+        const location = gl.getUniformLocation(self.id, name.ptr);
 
         gl.uniformMatrix4fv(location, 1, 0, &mat);
     }

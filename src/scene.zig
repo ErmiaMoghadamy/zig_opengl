@@ -1,58 +1,41 @@
 const std = @import("std");
 const zm = @import("zmath");
+const utils = @import("utils.zig");
 const Renderer = @import("graphics/renderer.zig").Renderer;
-const VertexArray = @import("graphics/vertex_array.zig").VertexArray;
 const Mesh = @import("graphics/mesh.zig").Mesh;
 const Shader = @import("graphics/shader.zig").Shader;
-const Entity = @import("graphics/entity.zig").Entity;
 const Camera = @import("camera.zig").Camera;
 const Cube = @import("objects/cube.zig").Cube;
-const Drawable = @import("objects/drawable.zig").Drawable;
 
 pub const Scene = struct {
     allocator: std.mem.Allocator,
-
-    renderer: Renderer,
+    renderer: *Renderer,
     camera: Camera,
-    cubes: std.ArrayList(Cube),
 
-    pub fn init(allocator: std.mem.Allocator, renderer: Renderer) !Scene {
+    cube: Cube,
+
+    pub fn init(allocator: std.mem.Allocator, renderer: *Renderer) !Scene {
         const aspect = @as(f32, @floatFromInt(800)) / @as(f32, @floatFromInt(600));
-
-        var scene = Scene{
+        return Scene{
             .allocator = allocator,
             .renderer = renderer,
+            .cube = try Cube.init(),
             .camera = Camera.init(aspect),
-            .cubes = try std.ArrayList(Cube).initCapacity(allocator, 0),
         };
-
-        for (0..20) |i| {
-            for (0..20) |j| {
-                try scene.addCube(@as(f32, @floatFromInt(i)) - 10.0, 0.0, @as(f32, @floatFromInt(j)) - 10.0, true);
-            }
-        }
-
-        return scene;
     }
 
     pub fn deinit(self: *Scene) void {
-        self.cubes.deinit(self.allocator);
+        _ = self;
     }
 
-    pub fn update(self: *Scene) void {
-        for (self.cubes.items) |*cube| {
-            cube.update(&self.camera);
-        }
+    pub fn update(self: *Scene, dt: f64) void {
+        _ = dt;
+        // self.cube.model = zm.mul(self.cube.model, zm.translation(0.0, @as(f32, @floatCast(dt * 1.5)), 0.0));
+        self.cube.update(&self.camera);
     }
 
-    pub fn draw(self: *Scene) void {
+    pub fn render(self: *Scene) void {
         self.renderer.clear();
-        for (self.cubes.items) |*cube| {
-            cube.draw(&self.renderer, &self.camera);
-        }
-    }
-
-    pub fn addCube(self: *Scene, i: f32, j: f32, k: f32, g: bool) !void {
-        try self.cubes.append(self.allocator, try Cube.init(i, j, k, g));
+        self.cube.draw(self.renderer);
     }
 };

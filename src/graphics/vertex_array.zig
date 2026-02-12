@@ -1,7 +1,5 @@
 const std = @import("std");
 const gl = @import("zopengl").bindings;
-const VertexBuffer = @import("./buffer.zig").VertexBuffer;
-const IndexBuffer = @import("./buffer.zig").IndexBuffer;
 
 pub const VertexArray = struct {
     id: u32,

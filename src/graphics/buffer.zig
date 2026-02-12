@@ -5,11 +5,9 @@ pub const VertexBuffer = struct {
 
     pub fn init(vertices: []const f32) VertexBuffer {
         var vbo = VertexBuffer{ .id = 0 };
-
         gl.genBuffers(1, &vbo.id);
         gl.bindBuffer(gl.ARRAY_BUFFER, vbo.id);
-        gl.bufferData(gl.ARRAY_BUFFER, @intCast(vertices.len * @sizeOf(f32)), vertices.ptr, gl.STATIC_DRAW);
-
+        gl.bufferData(gl.ARRAY_BUFFER, @as(c_int, @intCast(vertices.len * @sizeOf(f32))), vertices.ptr, gl.STATIC_DRAW);
         return vbo;
     }
 
@@ -28,13 +26,13 @@ pub const IndexBuffer = struct {
     count: usize,
 
     pub fn init(indices: []const u32) IndexBuffer {
-        var ebo = IndexBuffer{ .id = 0, .count = indices.len };
+        var ibo = IndexBuffer{ .id = 0, .count = indices.len };
 
-        gl.genBuffers(1, &ebo.id);
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ebo.id);
+        gl.genBuffers(1, &ibo.id);
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibo.id);
         gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, @intCast(@sizeOf(u32) * indices.len), indices.ptr, gl.STATIC_DRAW);
 
-        return ebo;
+        return ibo;
     }
 
     pub fn bind(self: IndexBuffer) void {

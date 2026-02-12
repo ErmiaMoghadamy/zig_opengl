@@ -1,43 +1,47 @@
 const std = @import("std");
-const utils = @import("utils.zig");
 const glfw = @import("zglfw");
 const zgui = @import("zgui");
 const zgl = @import("zopengl");
 const gl = zgl.bindings;
 const Renderer = @import("graphics/renderer.zig").Renderer;
+const Shader = @import("graphics/shader.zig").Shader;
+const Mesh = @import("graphics/mesh.zig").Mesh;
 const Scene = @import("scene.zig").Scene;
 
 pub const App = struct {
-    const width: i32 = 800;
-    const height: i32 = 600;
+    const width: i32 = 980;
+    const height: i32 = 720;
 
     allocator: std.mem.Allocator,
     window: *glfw.Window,
     renderer: Renderer,
-    scene: Scene,
 
-    camera_fov: f32,
+    timer: std.time.Timer,
+    last_time_ns: u64,
 
     fb_w: i32 = width,
     fb_h: i32 = height,
     last_w: i32 = 0,
     last_h: i32 = 0,
-    pending_resize: bool = true, // apply once on startup
+    pending_resize: bool = true,
+
+    scene: Scene,
 
     pub fn init(allocator: std.mem.Allocator) !App {
         try glfw.init();
         errdefer glfw.terminate();
 
-        var window = try glfw.Window.create(width, height, "Blank Screen", null, null);
+        var window = try glfw.createWindow(width, height, "Saturn Engine", null, null);
         errdefer window.destroy();
 
         glfw.makeContextCurrent(window);
         glfw.swapInterval(1);
 
-        try zgl.loadCoreProfile(glfw.getProcAddress, 4, 6);
+        try zgl.loadCoreProfile(glfw.getProcAddress, 3, 3);
 
         zgui.init(allocator);
         errdefer zgui.deinit();
+
         zgui.backend.init(window);
         errdefer zgui.backend.deinit();
 
@@ -46,17 +50,21 @@ pub const App = struct {
         gl.enable(gl.BLEND);
         gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
-        const renderer = try Renderer.init();
+        var renderer = try Renderer.init();
+        errdefer renderer.deinit();
 
-        var scene = try Scene.init(allocator, renderer);
+        var scene = try Scene.init(allocator, &renderer);
         errdefer scene.deinit();
 
-        return .{
-            .camera_fov = 0.1,
+        var timer = try std.time.Timer.start();
+
+        return App{
             .allocator = allocator,
             .window = window,
             .renderer = renderer,
             .scene = scene,
+            .timer = timer,
+            .last_time_ns = timer.read(),
         };
     }
 
@@ -68,44 +76,6 @@ pub const App = struct {
 
         self.window.destroy();
         glfw.terminate();
-    }
-
-    pub fn render(self: *App) void {
-        self.scene.update();
-        self.scene.draw();
-    }
-
-    pub fn drawUi(self: *App) !void {
-        const fb = self.window.getFramebufferSize();
-        if (fb[0] == 0 or fb[1] == 0) return;
-        zgui.backend.newFrame(@intCast(fb[0]), @intCast(fb[1]));
-        _ = zgui.begin("DEBUG BOX", .{});
-
-        if (zgui.button("Add Cubes", .{})) {
-            try self.scene.addCube(utils.genRandom() * 5.0, 1.0, utils.genRandom() * 5.0, false);
-        }
-        _ = zgui.sliderFloat("FOV", .{ .v = &self.camera_fov, .min = 0.3, .max = 2 });
-
-        self.scene.camera.updateFov(self.camera_fov);
-
-        zgui.end();
-        zgui.render();
-        zgui.backend.draw();
-    }
-
-    pub fn run(self: *App) !void {
-        const sizes: [2]i32 = self.window.getFramebufferSize();
-        gl.viewport(0, 0, sizes[0], sizes[1]);
-        self.scene.camera.setAspect(@as(f32, @floatFromInt(sizes[0])) / @as(f32, @floatFromInt(sizes[1])));
-
-        while (!self.window.shouldClose()) {
-            glfw.pollEvents();
-            self.handleInput();
-            self.handleResize();
-            self.render();
-            try self.drawUi();
-            self.window.swapBuffers();
-        }
     }
 
     fn handleResize(self: *App) void {
@@ -124,45 +94,33 @@ pub const App = struct {
         }
     }
 
-    fn handleInput(self: *App) void {
+    fn handleInput(self: *App, dt: f64) void {
         if (self.window.getKey(.escape) == .press) {
             self.window.setShouldClose(true);
         }
 
         if (self.window.getKey(.w) == .press) {
-            self.scene.camera.moveZ(-0.1);
+            self.scene.camera.moveZ(@floatCast(-2 * dt));
         }
 
         if (self.window.getKey(.s) == .press) {
-            self.scene.camera.moveZ(0.1);
+            self.scene.camera.moveZ(@floatCast(2 * dt));
         }
 
         if (self.window.getKey(.a) == .press) {
-            self.scene.camera.moveX(-0.1);
+            self.scene.camera.moveX(@floatCast(-2 * dt));
         }
 
         if (self.window.getKey(.d) == .press) {
-            self.scene.camera.moveX(0.1);
+            self.scene.camera.moveX(@floatCast(2 * dt));
         }
 
         if (self.window.getKey(.q) == .press) {
-            self.scene.camera.rotateY(-0.06);
+            self.scene.camera.rotateY(@floatCast(-2 * dt));
         }
 
         if (self.window.getKey(.e) == .press) {
-            self.scene.camera.rotateY(0.06);
-        }
-
-        if (self.window.getKey(.z) == .press) {
-            self.scene.camera.rotatePitch(-0.05);
-        }
-
-        if (self.window.getKey(.x) == .press) {
-            self.scene.camera.rotatePitch(0.05);
-        }
-
-        if (self.window.getKey(.right_shift) == .press) {
-            self.scene.camera.moveX(0.1);
+            self.scene.camera.rotateY(@floatCast(2 * dt));
         }
 
         if (self.window.getKey(.space) == .press) {
@@ -171,6 +129,40 @@ pub const App = struct {
 
         if (self.window.getKey(.left_control) == .press) {
             self.scene.camera.moveY(-0.1);
+        }
+    }
+
+    fn timeDelta(self: *App) f64 {
+        const now = self.timer.read();
+        const delta_ns = now - self.last_time_ns;
+        self.last_time_ns = now;
+
+        const dt = @as(f32, @floatFromInt(delta_ns)) / 1_000_000_000.0;
+
+        if (dt > 0.1) return 0.1;
+
+        return dt;
+    }
+
+    pub fn render(self: *App, dt: f64) void {
+        self.scene.update(dt);
+        self.scene.render();
+    }
+
+    pub fn run(self: *App) !void {
+        const sizes: [2]i32 = self.window.getFramebufferSize();
+        gl.viewport(0, 0, sizes[0], sizes[1]);
+        self.scene.camera.setAspect(@as(f32, @floatFromInt(sizes[0])) / @as(f32, @floatFromInt(sizes[1])));
+
+        while (!self.window.shouldClose()) {
+            glfw.pollEvents();
+            self.handleResize();
+
+            const dt = self.timeDelta();
+
+            self.handleInput(dt);
+            self.render(dt);
+            self.window.swapBuffers();
         }
     }
 };

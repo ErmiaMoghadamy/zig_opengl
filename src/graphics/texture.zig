@@ -61,12 +61,6 @@ pub const Texture = struct {
 
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, self.width, self.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, self.localBuffer.ptr);
         gl.bindTexture(gl.TEXTURE_2D, 0);
-
-        if (self.localBuffer.len != 0) {
-            std.debug.print("Texture buffer\n", .{});
-        }
-
-        std.debug.print("[OK] Texture post initialized\n", .{});
     }
 
     pub fn getWidth(self: Texture) u32 {

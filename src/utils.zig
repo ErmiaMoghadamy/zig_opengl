@@ -45,16 +45,3 @@ pub fn loadPngRgba8(allocator: std.mem.Allocator, path: []const u8) !RgbaImage {
 
     return .{ .width = w, .height = h, .pixels = out };
 }
-
-pub fn ortho(left: f32, right: f32, bottom: f32, top: f32, near: f32, far: f32) zm.Mat {
-    const rl = right - left;
-    const tb = top - bottom;
-    const fna = far - near;
-
-    return zm.matFromArr(.{
-        2.0 / rl,             0.0,                  0.0,                 0.0,
-        0.0,                  2.0 / tb,             0.0,                 0.0,
-        0.0,                  0.0,                  -2.0 / fna,          0.0,
-        -(right + left) / rl, -(top + bottom) / tb, -(far + near) / fna, 1.0,
-    });
-}
