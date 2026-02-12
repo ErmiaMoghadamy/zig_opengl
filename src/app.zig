@@ -16,6 +16,7 @@ pub const App = struct {
     scene: Scene,
 
     relative_pos: f32,
+    camera_fov: f32,
 
     fb_w: i32 = width,
     fb_h: i32 = height,
@@ -51,6 +52,7 @@ pub const App = struct {
         errdefer scene.deinit();
 
         return .{
+            .camera_fov = 0.1,
             .relative_pos = 0.0,
             .allocator = allocator,
             .window = window,
@@ -83,9 +85,29 @@ pub const App = struct {
         if (zgui.button("Add Cube", .{})) {
             try self.scene.addCube();
         }
-        _ = zgui.sliderFloat("Move Cube", .{ .v = &self.relative_pos, .min = -4, .max = 4 });
+        _ = zgui.sliderFloat("Move Cube", .{ .v = &self.relative_pos, .min = -6, .max = 6 });
+        _ = zgui.sliderFloat("FOV", .{ .v = &self.camera_fov, .min = 0, .max = 2 });
+
+        self.scene.camera.updateFov(self.camera_fov);
 
         self.scene.cubes.items[0].move(self.relative_pos);
+
+        if (self.scene.cubes.items.len > 7) {
+            self.scene.cubes.items[7].move2(-self.relative_pos / 2.2);
+        }
+
+        if (self.scene.cubes.items.len > 6) {
+            self.scene.cubes.items[6].move2(self.relative_pos / 2.2);
+        }
+
+        if (self.scene.cubes.items.len > 5) {
+            self.scene.cubes.items[5].move2(-self.relative_pos);
+        }
+
+        if (self.scene.cubes.items.len > 4) {
+            self.scene.cubes.items[4].move2(self.relative_pos);
+        }
+
         if (self.scene.cubes.items.len > 3) {
             self.scene.cubes.items[3].move(-self.relative_pos / 2.2);
         }
@@ -108,6 +130,7 @@ pub const App = struct {
 
         while (!self.window.shouldClose()) {
             glfw.pollEvents();
+            self.handleInput();
             self.handleResize();
             self.render();
             try self.drawUi();
@@ -128,6 +151,56 @@ pub const App = struct {
                 @as(f32, @floatFromInt(fbs[0])) /
                 @as(f32, @floatFromInt(fbs[1]));
             self.scene.camera.setAspect(aspect);
+        }
+    }
+
+    fn handleInput(self: *App) void {
+        if (self.window.getKey(.escape) == .press) {
+            self.window.setShouldClose(true);
+        }
+
+        if (self.window.getKey(.w) == .press) {
+            self.scene.camera.moveZ(-0.1);
+        }
+
+        if (self.window.getKey(.s) == .press) {
+            self.scene.camera.moveZ(0.1);
+        }
+
+        if (self.window.getKey(.a) == .press) {
+            self.scene.camera.moveX(-0.1);
+        }
+
+        if (self.window.getKey(.d) == .press) {
+            self.scene.camera.moveX(0.1);
+        }
+
+        if (self.window.getKey(.q) == .press) {
+            self.scene.camera.rotateY(-0.05);
+        }
+
+        if (self.window.getKey(.e) == .press) {
+            self.scene.camera.rotateY(0.05);
+        }
+
+        if (self.window.getKey(.z) == .press) {
+            self.scene.camera.rotatePitch(-0.03);
+        }
+
+        if (self.window.getKey(.x) == .press) {
+            self.scene.camera.rotatePitch(0.03);
+        }
+
+        if (self.window.getKey(.right_shift) == .press) {
+            self.scene.camera.moveX(0.1);
+        }
+
+        if (self.window.getKey(.space) == .press) {
+            self.scene.camera.moveY(0.1);
+        }
+
+        if (self.window.getKey(.left_control) == .press) {
+            self.scene.camera.moveY(-0.1);
         }
     }
 };

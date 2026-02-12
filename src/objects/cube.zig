@@ -52,15 +52,19 @@ pub const Cube = struct {
         const r2 = zm.rotationY(self.rotation);
         const r3 = zm.rotationZ(0);
         const r = zm.mul(r1, zm.mul(r2, r3));
+        _ = r;
         const moves = zm.translation(self.position[0], self.position[1], self.position[2]);
-        const model = zm.mul(r, moves);
+        const model = zm.mul(zm.identity(), moves);
 
         return utils.mat2arr(zm.mul(zm.mul(model, view), projection));
     }
 
     pub fn move(self: *Cube, r: f32) void {
         self.position[0] = r;
-        // self.position[1] += r;
+    }
+
+    pub fn move2(self: *Cube, r: f32) void {
+        self.position[2] = r;
     }
 
     pub fn update(self: *Cube, camera: *Camera) void {
