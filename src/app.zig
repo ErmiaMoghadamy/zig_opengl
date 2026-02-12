@@ -1,4 +1,5 @@
 const std = @import("std");
+const utils = @import("utils.zig");
 const glfw = @import("zglfw");
 const zgui = @import("zgui");
 const zgl = @import("zopengl");
@@ -80,8 +81,8 @@ pub const App = struct {
         zgui.backend.newFrame(@intCast(fb[0]), @intCast(fb[1]));
         _ = zgui.begin("DEBUG BOX", .{});
 
-        if (zgui.button("Add Cube", .{})) {
-            try self.scene.addCube();
+        if (zgui.button("Add Cubes", .{})) {
+            try self.scene.addCube(utils.genRandom() * 5.0, 1.0, utils.genRandom() * 5.0, false);
         }
         _ = zgui.sliderFloat("FOV", .{ .v = &self.camera_fov, .min = 0.3, .max = 2 });
 

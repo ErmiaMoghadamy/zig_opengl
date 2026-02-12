@@ -26,7 +26,11 @@ pub const Scene = struct {
             .cubes = try std.ArrayList(Cube).initCapacity(allocator, 0),
         };
 
-        try scene.cubes.append(allocator, try Cube.init());
+        for (0..20) |i| {
+            for (0..20) |j| {
+                try scene.addCube(@as(f32, @floatFromInt(i)) - 10.0, 0.0, @as(f32, @floatFromInt(j)) - 10.0, true);
+            }
+        }
 
         return scene;
     }
@@ -48,7 +52,7 @@ pub const Scene = struct {
         }
     }
 
-    pub fn addCube(self: *Scene) !void {
-        try self.cubes.append(self.allocator, try Cube.init());
+    pub fn addCube(self: *Scene, i: f32, j: f32, k: f32, g: bool) !void {
+        try self.cubes.append(self.allocator, try Cube.init(i, j, k, g));
     }
 };

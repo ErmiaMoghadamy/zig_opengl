@@ -8,20 +8,34 @@ const utils = @import("../utils.zig");
 pub const Cube = struct {
     mesh: Mesh,
     shader: Shader,
-    rotation: f32,
     position: [3]f32,
+    init_rot: f32,
 
-    pub fn init() !Cube {
-        const vertices = [_]f32{
-            -0.5, -0.5, -0.5, 1.0, 0.0, 0.0,
-            0.5,  -0.5, -0.5, 0.0, 0.0, 1.0,
-            0.5,  0.5,  -0.5, 0.0, 1.0, 0.0,
-            -0.5, 0.5,  -0.5, 1.0, 0.0, 1.0,
-            -0.5, -0.5, 0.5,  1.0, 1.0, 0.0,
-            0.5,  -0.5, 0.5,  0.0, 1.0, 1.0,
-            0.5,  0.5,  0.5,  0.0, 0.0, 0.0,
-            -0.5, 0.5,  0.5,  1.0, 1.0, 1.0,
-        };
+    pub fn init(i: f32, j: f32, k: f32, g: bool) !Cube {
+        var vertices: [48]f32 = undefined;
+        if (g) {
+            vertices = [_]f32{
+                -0.5, -0.5, -0.5, 0.269, 0.542, 0.449,
+                0.5,  -0.5, -0.5, 0.269, 0.542, 0.449,
+                0.5,  0.5,  -0.5, 0.269, 0.542, 0.449,
+                -0.5, 0.5,  -0.5, 0.269, 0.542, 0.449,
+                -0.5, -0.5, 0.5,  0.269, 0.542, 0.449,
+                0.5,  -0.5, 0.5,  0.269, 0.542, 0.449,
+                0.5,  0.5,  0.5,  0.269, 0.542, 0.449,
+                -0.5, 0.5,  0.5,  0.269, 0.542, 0.449,
+            };
+        } else {
+            vertices = [_]f32{
+                -0.5, -0.5, -0.5, 0.0, 1.0, 0.0,
+                0.5,  -0.5, -0.5, 0.0, 0.0, 1.0,
+                0.5,  0.5,  -0.5, 0.0, 1.0, 0.0,
+                -0.5, 0.5,  -0.5, 0.0, 1.0, 1.0,
+                -0.5, -0.5, 0.5,  1.0, 0.0, 0.0,
+                0.5,  -0.5, 0.5,  0.0, 1.0, 1.0,
+                0.5,  0.5,  0.5,  1.0, 1.0, 0.0,
+                -0.5, 0.5,  0.5,  1.0, 1.0, 1.0,
+            };
+        }
 
         const indices = [_]u32{
             0, 1, 2, 2, 3, 0,
@@ -34,13 +48,17 @@ pub const Cube = struct {
 
         const layout = [_]u32{ 3, 3 };
 
+        const calc_x: f32 = 1.0 * i;
+        const calc_y: f32 = 1.0 * j;
+        const calc_z: f32 = 1.0 * k;
+
         return Cube{
-            .rotation = 0.0,
-            .position = [3]f32{ 0.0, 0.0, 0.0 },
+            .init_rot = 0.0,
+            .position = [3]f32{ calc_x, calc_y, calc_z },
             .mesh = Mesh.init(&vertices, &indices, &layout),
             .shader = try Shader.init(
-                @embedFile("../shaders/vert2.glsl"),
-                @embedFile("../shaders/frag2.glsl"),
+                @embedFile("../shaders/vert.glsl"),
+                @embedFile("../shaders/frag.glsl"),
             ),
         };
     }
@@ -48,27 +66,13 @@ pub const Cube = struct {
     pub fn getMvp(self: Cube, camera: *Camera) [16]f32 {
         const view = camera.view;
         const projection = camera.projection;
-        const r1 = zm.rotationX(self.rotation);
-        const r2 = zm.rotationY(self.rotation);
-        const r3 = zm.rotationZ(0);
-        const r = zm.mul(r1, zm.mul(r2, r3));
-        _ = r;
         const moves = zm.translation(self.position[0], self.position[1], self.position[2]);
-        const model = zm.mul(zm.identity(), moves);
+        const model = zm.mul(zm.mul(zm.rotationZ(self.init_rot), zm.rotationY(self.init_rot)), moves);
 
         return utils.mat2arr(zm.mul(zm.mul(model, view), projection));
     }
 
-    pub fn move(self: *Cube, r: f32) void {
-        self.position[0] = r;
-    }
-
-    pub fn move2(self: *Cube, r: f32) void {
-        self.position[2] = r;
-    }
-
     pub fn update(self: *Cube, camera: *Camera) void {
-        self.rotation += 0.01;
         self.shader.setu_mvp(self.getMvp(camera));
     }
 

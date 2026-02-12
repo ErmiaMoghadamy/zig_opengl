@@ -4,23 +4,13 @@ const zglfw = @import("zglfw");
 const zm = @import("zmath");
 const zstbi = @import("zstbi");
 
-pub fn show_ui(window: *zglfw.Window) !void {
-    const fb = window.getFramebufferSize();
-    if (fb[0] == 0 or fb[1] == 0) return;
-    zgui.backend.newFrame(@intCast(fb[0]), @intCast(fb[1]));
+pub fn genRandom() f32 {
+    const rand = std.crypto.random;
 
-    _ = zgui.begin("DEBUG BOX", .{});
-
-    _ = zgui.text("Hello", .{});
-
-    // _ = zgui.sliderInt("Rotation X", .{ .v = rot_x, .min = -10, .max = 10 });
-    // _ = zgui.sliderInt("Rotation Y", .{ .v = rot_y, .min = -10, .max = 10 });
-    // _ = zgui.sliderInt("Rotation Z", .{ .v = rot_z, .min = -10, .max = 10 });
-    // _ = zgui.sliderFloat("Scale", .{ .v = scale, .min = -5, .max = 5 });
-
-    zgui.end();
-    zgui.render();
-    zgui.backend.draw();
+    if (rand.boolean()) {
+        return -rand.float(f32);
+    }
+    return rand.float(f32);
 }
 
 pub fn mat2arr(mat: zm.Mat) [16]f32 {
