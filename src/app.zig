@@ -15,7 +15,6 @@ pub const App = struct {
     renderer: Renderer,
     scene: Scene,
 
-    relative_pos: f32,
     camera_fov: f32,
 
     fb_w: i32 = width,
@@ -53,7 +52,6 @@ pub const App = struct {
 
         return .{
             .camera_fov = 0.1,
-            .relative_pos = 0.0,
             .allocator = allocator,
             .window = window,
             .renderer = renderer,
@@ -85,38 +83,9 @@ pub const App = struct {
         if (zgui.button("Add Cube", .{})) {
             try self.scene.addCube();
         }
-        _ = zgui.sliderFloat("Move Cube", .{ .v = &self.relative_pos, .min = -6, .max = 6 });
-        _ = zgui.sliderFloat("FOV", .{ .v = &self.camera_fov, .min = 0, .max = 2 });
+        _ = zgui.sliderFloat("FOV", .{ .v = &self.camera_fov, .min = 0.3, .max = 2 });
 
         self.scene.camera.updateFov(self.camera_fov);
-
-        self.scene.cubes.items[0].move(self.relative_pos);
-
-        if (self.scene.cubes.items.len > 7) {
-            self.scene.cubes.items[7].move2(-self.relative_pos / 2.2);
-        }
-
-        if (self.scene.cubes.items.len > 6) {
-            self.scene.cubes.items[6].move2(self.relative_pos / 2.2);
-        }
-
-        if (self.scene.cubes.items.len > 5) {
-            self.scene.cubes.items[5].move2(-self.relative_pos);
-        }
-
-        if (self.scene.cubes.items.len > 4) {
-            self.scene.cubes.items[4].move2(self.relative_pos);
-        }
-
-        if (self.scene.cubes.items.len > 3) {
-            self.scene.cubes.items[3].move(-self.relative_pos / 2.2);
-        }
-        if (self.scene.cubes.items.len > 2) {
-            self.scene.cubes.items[2].move(self.relative_pos / 2.2);
-        }
-        if (self.scene.cubes.items.len > 1) {
-            self.scene.cubes.items[1].move(-self.relative_pos);
-        }
 
         zgui.end();
         zgui.render();
@@ -176,19 +145,19 @@ pub const App = struct {
         }
 
         if (self.window.getKey(.q) == .press) {
-            self.scene.camera.rotateY(-0.05);
+            self.scene.camera.rotateY(-0.06);
         }
 
         if (self.window.getKey(.e) == .press) {
-            self.scene.camera.rotateY(0.05);
+            self.scene.camera.rotateY(0.06);
         }
 
         if (self.window.getKey(.z) == .press) {
-            self.scene.camera.rotatePitch(-0.03);
+            self.scene.camera.rotatePitch(-0.05);
         }
 
         if (self.window.getKey(.x) == .press) {
-            self.scene.camera.rotatePitch(0.03);
+            self.scene.camera.rotatePitch(0.05);
         }
 
         if (self.window.getKey(.right_shift) == .press) {

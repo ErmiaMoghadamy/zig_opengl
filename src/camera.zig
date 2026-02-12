@@ -62,8 +62,15 @@ pub const Camera = struct {
     }
 
     pub fn moveZ(self: *Camera, amount: f32) void {
+        const world_up = zm.f32x4(0.0, 1.0, 0.0, 0.0);
+
         const forward = zm.normalize3(self.target - self.position);
-        const movement = forward * @as(zm.Vec, @splat(-amount));
+
+        const right = zm.normalize3(zm.cross3(forward, world_up));
+
+        const forward_level = zm.normalize3(zm.cross3(world_up, right));
+
+        const movement = forward_level * @as(zm.Vec, @splat(-amount));
 
         self.position += movement;
         self.target += movement;
@@ -81,30 +88,6 @@ pub const Camera = struct {
 
         self.position += movement;
         self.target += movement;
-
-        self.updateView();
-    }
-
-    pub fn walk(self: *Camera, amount: f32) void {
-        // direction you're facing
-        const forward = zm.normalize3(self.target - self.position);
-
-        // extract yaw-only (flatten on XZ plane)
-        const flat = zm.normalize3(zm.f32x4(forward[0], 0.0, forward[2], 0.0));
-
-        // if you're looking straight up/down, flat becomes invalid; just do nothing
-        // (prevents NaNs from normalize3)
-        const flat_len2 = flat[0] * flat[0] + flat[2] * flat[2];
-        if (flat_len2 < 0.000001) return;
-
-        const movement = flat * @as(zm.Vec, @splat(-amount));
-
-        self.position += movement;
-        self.target += movement;
-
-        // hard lock to the floor (optional: remove if you want flying)
-        self.position = zm.f32x4(self.position[0], 0.0, self.position[2], 1.0);
-        self.target = zm.f32x4(self.target[0], 0.0, self.target[2], 1.0);
 
         self.updateView();
     }
