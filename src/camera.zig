@@ -131,7 +131,7 @@ pub const Camera = struct {
         self.updateView();
     }
 
-    pub fn rotatePitch(self: *Camera, angle: f32) void {
+    pub fn rotateV(self: *Camera, angle: f32) void {
         const to_target = self.target - self.position;
 
         const dist = std.math.sqrt(

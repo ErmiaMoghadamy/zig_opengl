@@ -1,5 +1,5 @@
-const saturn = @import("zypher");
+const root = @import("zypher");
 
 pub fn main() !void {
-    try saturn.run();
+    try root.run();
 }

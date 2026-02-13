@@ -100,27 +100,35 @@ pub const App = struct {
         }
 
         if (self.window.getKey(.w) == .press) {
-            self.scene.camera.moveZ(@floatCast(-2 * dt));
+            self.scene.camera.moveZ(@floatCast(-4 * dt));
         }
 
         if (self.window.getKey(.s) == .press) {
-            self.scene.camera.moveZ(@floatCast(2 * dt));
+            self.scene.camera.moveZ(@floatCast(4 * dt));
         }
 
         if (self.window.getKey(.a) == .press) {
-            self.scene.camera.moveX(@floatCast(-2 * dt));
+            self.scene.camera.moveX(@floatCast(-4 * dt));
         }
 
         if (self.window.getKey(.d) == .press) {
-            self.scene.camera.moveX(@floatCast(2 * dt));
+            self.scene.camera.moveX(@floatCast(4 * dt));
         }
 
         if (self.window.getKey(.q) == .press) {
-            self.scene.camera.rotateY(@floatCast(-2 * dt));
+            self.scene.camera.rotateY(@floatCast(-4 * dt));
         }
 
         if (self.window.getKey(.e) == .press) {
-            self.scene.camera.rotateY(@floatCast(2 * dt));
+            self.scene.camera.rotateY(@floatCast(4 * dt));
+        }
+
+        if (self.window.getKey(.z) == .press) {
+            self.scene.camera.rotateV(@floatCast(-2 * dt));
+        }
+
+        if (self.window.getKey(.x) == .press) {
+            self.scene.camera.rotateV(@floatCast(2 * dt));
         }
 
         if (self.window.getKey(.space) == .press) {
