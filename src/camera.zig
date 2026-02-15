@@ -17,7 +17,7 @@ pub const Camera = struct {
         const forward = zm.f32x4(0.0, 0.0, -1.0, 0.0);
 
         var camera = Camera{
-            .position = zm.f32x4(0.0, 0.0, 5.0, 1.0),
+            .position = pos,
             .target = pos + forward,
             .view = undefined,
             .projection = undefined,
@@ -30,6 +30,9 @@ pub const Camera = struct {
 
         camera.updateProjection();
         camera.updateView();
+
+        camera.moveY(2.0);
+        camera.moveZ(-2.0);
 
         return camera;
     }

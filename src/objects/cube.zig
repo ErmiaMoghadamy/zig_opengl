@@ -1,19 +1,20 @@
 const std = @import("std");
+const zm = @import("zmath");
+const utils = @import("../utils.zig");
 const Mesh = @import("../graphics/mesh.zig").Mesh;
 const Shader = @import("../graphics/shader.zig").Shader;
 const Renderer = @import("../graphics/renderer.zig").Renderer;
 const Camera = @import("../camera.zig").Camera;
 const Texture = @import("../graphics/texture.zig").Texture;
-const zm = @import("zmath");
-const utils = @import("../utils.zig");
+const Transform = @import("../graphics/transform.zig").Transform;
 
 pub const Cube = struct {
     mesh: Mesh,
     shader: Shader,
     texture: Texture,
-    model: zm.Mat,
+    transform: Transform,
 
-    pub fn init() !Cube {
+    pub fn init(tname: []const u8, ts: i32) !Cube {
         const vertices = [_]f32{
             -0.5, -0.5, 0.5,  0.0, 0.0,
             0.5,  -0.5, 0.5,  1.0, 0.0,
@@ -52,30 +53,37 @@ pub const Cube = struct {
 
         const layout = [_]u32{ 3, 2 };
 
+        const path = try std.fmt.allocPrint(std.heap.raw_c_allocator, "./assets/{s}.png", .{tname});
+
         return Cube{
-            .model = zm.identity(),
+            .transform = Transform.init(),
             .mesh = Mesh.init(&vertices, &indices, &layout),
             .shader = try Shader.init(
                 @embedFile("../shaders/vertex.glsl"),
                 @embedFile("../shaders/fragment.glsl"),
             ),
-            .texture = try Texture.init(std.heap.raw_c_allocator, "./assets/swastika.png"),
+            .texture = try Texture.init(std.heap.raw_c_allocator, path, ts),
         };
     }
 
     pub fn getModel(self: Cube) zm.Mat {
-        return self.model;
+        return self.transform.matrix();
     }
 
-    pub fn update(self: *Cube, camera: *Camera) void {
-        self.texture.bind(0);
-        self.shader.setu_1i("uTexture", 0);
+    pub fn update(self: *Cube, dt: f64) void {
+        _ = self;
+        _ = dt;
+    }
+
+    pub fn draw(self: *Cube, renderer: *Renderer, camera: *Camera) void {
+        self.shader.bind();
+        self.texture.bind();
+
+        self.shader.setu_1i("uTex", self.texture.slot);
         self.shader.setu_mat("uModel", utils.mat2arr(self.getModel()));
         self.shader.setu_mat("uView", utils.mat2arr(camera.view));
         self.shader.setu_mat("uProjection", utils.mat2arr(camera.projection));
-    }
 
-    pub fn draw(self: *Cube, renderer: *Renderer) void {
         renderer.drawMesh(&self.mesh, &self.shader);
     }
 };

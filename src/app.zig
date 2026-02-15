@@ -31,7 +31,7 @@ pub const App = struct {
         try glfw.init();
         errdefer glfw.terminate();
 
-        var window = try glfw.createWindow(width, height, "Saturn Engine", null, null);
+        var window = try glfw.createWindow(width, height, "Zypher Engine", null, null);
         errdefer window.destroy();
 
         glfw.makeContextCurrent(window);
@@ -94,17 +94,21 @@ pub const App = struct {
         }
     }
 
-    fn handleInput(self: *App, dt: f64) void {
+    fn handleInput(self: *App, dt: f64) !void {
         if (self.window.getKey(.escape) == .press) {
             self.window.setShouldClose(true);
         }
 
+        if (self.window.getKey(.h) == .press) {
+            try self.scene.addCube();
+        }
+
         if (self.window.getKey(.w) == .press) {
-            self.scene.camera.moveZ(@floatCast(-4 * dt));
+            self.scene.camera.moveZ(@floatCast(-6 * dt));
         }
 
         if (self.window.getKey(.s) == .press) {
-            self.scene.camera.moveZ(@floatCast(4 * dt));
+            self.scene.camera.moveZ(@floatCast(6 * dt));
         }
 
         if (self.window.getKey(.a) == .press) {
@@ -168,7 +172,7 @@ pub const App = struct {
 
             const dt = self.timeDelta();
 
-            self.handleInput(dt);
+            try self.handleInput(dt);
             self.render(dt);
             self.window.swapBuffers();
         }

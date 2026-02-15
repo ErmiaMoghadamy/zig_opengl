@@ -13,7 +13,9 @@ pub const Texture = struct {
     localBuffer: []u8 = &[_]u8{},
     allocator: std.mem.Allocator,
 
-    pub fn init(allocator: std.mem.Allocator, filepath: []const u8) !Texture {
+    slot: i32,
+
+    pub fn init(allocator: std.mem.Allocator, filepath: []const u8, ts: i32) !Texture {
         var t = Texture{
             .id = 0,
             .allocator = allocator,
@@ -22,6 +24,7 @@ pub const Texture = struct {
             .width = 0,
             .height = 0,
             .bpp = 0,
+            .slot = ts,
         };
 
         try t.post_init();
@@ -71,8 +74,8 @@ pub const Texture = struct {
         return self.height;
     }
 
-    pub fn bind(self: Texture, slot: c_int) void {
-        const slot_enum: c_uint = switch (slot) {
+    pub fn bind(self: Texture) void {
+        const slot_enum: c_uint = switch (self.slot) {
             0 => gl.TEXTURE0,
             1 => gl.TEXTURE1,
             2 => gl.TEXTURE2,

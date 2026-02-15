@@ -4,13 +4,12 @@ const zglfw = @import("zglfw");
 const zm = @import("zmath");
 const zstbi = @import("zstbi");
 
-pub fn genRandom() f32 {
+pub fn genRandom() i32 {
     const rand = std.crypto.random;
 
-    if (rand.boolean()) {
-        return -rand.float(f32);
-    }
-    return rand.float(f32);
+    const e: i32 = @mod(rand.int(i32), 32) - 16;
+
+    return e;
 }
 
 pub fn mat2arr(mat: zm.Mat) [16]f32 {
