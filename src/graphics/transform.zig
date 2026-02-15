@@ -21,6 +21,6 @@ pub const Transform = struct {
 
         const R = zm.mul(rz, zm.mul(rx, ry));
         const S = zm.scalingV(self.scale);
-        return zm.mul(S, zm.mul(T, R));
+        return zm.mul(S, zm.mul(R, T));
     }
 };
