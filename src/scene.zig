@@ -1,4 +1,5 @@
 const std = @import("std");
+const utils = @import("utils.zig");
 const Renderer = @import("graphics/renderer.zig").Renderer;
 const Shader = @import("graphics/shader.zig").Shader;
 const Camera = @import("camera.zig").Camera;
@@ -32,6 +33,10 @@ pub const Scene = struct {
     pub fn addCube(self: *Scene) !void {
         const tg = self.camera.target;
         var cube: Cube = undefined;
+
+        const x: f32 = @floatFromInt(utils.genRandom());
+        const y: f32 = @floatFromInt(utils.genRandom());
+
         if (std.crypto.random.boolean()) {
             cube = try Cube.init(
                 &self.base_texture,
@@ -44,7 +49,7 @@ pub const Scene = struct {
             );
         }
 
-        cube.transform.setPos(tg[0], tg[1], tg[2]);
+        cube.transform.setPos(x, tg[1], y);
         try self.cubes.append(self.allocator, cube);
     }
 
