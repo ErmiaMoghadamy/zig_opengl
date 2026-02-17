@@ -1,12 +1,10 @@
 const std = @import("std");
-const zm = @import("zmath");
-const utils = @import("utils.zig");
 const Renderer = @import("graphics/renderer.zig").Renderer;
-const Mesh = @import("graphics/mesh.zig").Mesh;
 const Shader = @import("graphics/shader.zig").Shader;
 const Camera = @import("camera.zig").Camera;
 const Cube = @import("objects/cube.zig").Cube;
 const Texture = @import("graphics/texture.zig").Texture;
+const RenderContext = @import("graphics/render_context.zig").RenderContext;
 
 pub const Scene = struct {
     allocator: std.mem.Allocator,
@@ -70,8 +68,9 @@ pub const Scene = struct {
 
     pub fn render(self: *Scene) void {
         self.renderer.clear();
+        const context = RenderContext.fromCamera(&self.camera);
         for (self.cubes.items) |*cube| {
-            cube.draw(self.renderer, &self.camera);
+            cube.draw(self.renderer, context);
         }
     }
 };

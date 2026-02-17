@@ -1,4 +1,3 @@
-const zm = @import("zmath");
 const gl = @import("zopengl").bindings;
 const VertexBuffer = @import("buffer.zig").VertexBuffer;
 const IndexBuffer = @import("buffer.zig").IndexBuffer;

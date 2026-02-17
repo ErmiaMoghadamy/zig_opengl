@@ -1,17 +1,16 @@
 const std = @import("std");
 const zm = @import("zmath");
-const utils = @import("../utils.zig");
 const Mesh = @import("../graphics/mesh.zig").Mesh;
 const Shader = @import("../graphics/shader.zig").Shader;
 const Renderer = @import("../graphics/renderer.zig").Renderer;
-const Camera = @import("../camera.zig").Camera;
 const Texture = @import("../graphics/texture.zig").Texture;
 const Transform = @import("../graphics/transform.zig").Transform;
+const Material = @import("../graphics/material.zig").Material;
+const RenderContext = @import("../graphics/render_context.zig").RenderContext;
 
 pub const Cube = struct {
     mesh: Mesh,
-    shader: *Shader,
-    texture: *Texture,
+    material: Material,
     transform: Transform,
 
     pub fn init(texture: *Texture, shader: *Shader) !Cube {
@@ -56,8 +55,7 @@ pub const Cube = struct {
         return Cube{
             .transform = Transform.init(),
             .mesh = Mesh.init(&vertices, &indices, &layout),
-            .shader = shader,
-            .texture = texture,
+            .material = Material.init(shader, texture),
         };
     }
 
@@ -74,15 +72,9 @@ pub const Cube = struct {
         _ = dt;
     }
 
-    pub fn draw(self: *Cube, renderer: *Renderer, camera: *Camera) void {
-        self.shader.bind();
-        self.texture.bind();
-
-        self.shader.setu_1i("uTex", self.texture.slot);
-        self.shader.setu_mat("uModel", utils.mat2arr(self.getModel()));
-        self.shader.setu_mat("uView", utils.mat2arr(camera.view));
-        self.shader.setu_mat("uProjection", utils.mat2arr(camera.projection));
-
-        renderer.drawMesh(&self.mesh, self.shader);
+    pub fn draw(self: *Cube, renderer: *Renderer, context: RenderContext) void {
+        self.material.bind();
+        context.applyTransform(self.material.shader, self.getModel());
+        renderer.drawMesh(&self.mesh);
     }
 };
