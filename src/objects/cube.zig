@@ -5,12 +5,12 @@ const Shader = @import("../graphics/shader.zig").Shader;
 const Renderer = @import("../graphics/renderer.zig").Renderer;
 const Texture = @import("../graphics/texture.zig").Texture;
 const Transform = @import("../graphics/transform.zig").Transform;
-const Material = @import("../graphics/material.zig").Material;
 const RenderContext = @import("../graphics/render_context.zig").RenderContext;
 
 pub const Cube = struct {
     mesh: Mesh,
-    material: Material,
+    shader: *Shader,
+    texture: *Texture,
     transform: Transform,
 
     pub fn init(texture: *Texture, shader: *Shader) !Cube {
@@ -55,7 +55,8 @@ pub const Cube = struct {
         return Cube{
             .transform = Transform.init(),
             .mesh = Mesh.init(&vertices, &indices, &layout),
-            .material = Material.init(shader, texture),
+            .shader = shader,
+            .texture = texture,
         };
     }
 
@@ -73,8 +74,10 @@ pub const Cube = struct {
     }
 
     pub fn draw(self: *Cube, renderer: *Renderer, context: RenderContext) void {
-        self.material.bind();
-        context.applyTransform(self.material.shader, self.getModel());
+        self.texture.bind();
+        self.shader.bind();
+        self.mesh.bind();
+        context.applyTransform(self.shader, self.getModel());
         renderer.drawMesh(&self.mesh);
     }
 };
