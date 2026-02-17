@@ -32,10 +32,7 @@ pub const Scene = struct {
     }
 
     pub fn addCube(self: *Scene) !void {
-        const r1 = utils.genRandom();
-        const r2 = utils.genRandom();
-        const r3 = @mod(utils.genRandom(), 4);
-
+        const tg = self.camera.target;
         var cube: Cube = undefined;
         if (std.crypto.random.boolean()) {
             cube = try Cube.init(
@@ -49,7 +46,7 @@ pub const Scene = struct {
             );
         }
 
-        cube.transform.setPos(@floatFromInt(r1), @floatFromInt(r3), @floatFromInt(r2));
+        cube.transform.setPos(tg[0], tg[1], tg[2]);
         try self.cubes.append(self.allocator, cube);
     }
 
