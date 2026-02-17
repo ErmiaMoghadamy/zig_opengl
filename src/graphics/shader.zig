@@ -86,6 +86,14 @@ pub const Shader = struct {
         self.id = 0;
     }
 
+    pub fn use_texture(self: Shader, textureSlot: i32) void {
+        self.bind();
+
+        const location = gl.getUniformLocation(self.id, "uTex");
+
+        gl.uniform1i(location, textureSlot);
+    }
+
     pub fn setu_mat(self: Shader, name: [:0]const u8, mat: [16]f32) void {
         self.bind();
 

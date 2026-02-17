@@ -2,11 +2,11 @@ const glfw = @import("zglfw");
 const Camera = @import("camera.zig").Camera;
 
 pub const CameraController = struct {
-    move_speed_z: f32 = 4.0,
-    move_speed_x: f32 = 4.0,
-    move_speed_y: f32 = 4.0,
-    yaw_speed: f32 = 4.0,
-    pitch_speed: f32 = 4.0,
+    move_speed_z: f32 = 6.0,
+    move_speed_x: f32 = 6.0,
+    move_speed_y: f32 = 6.0,
+    yaw_speed: f32 = 6.0,
+    pitch_speed: f32 = 6.0,
 
     pub fn update(self: CameraController, window: *glfw.Window, camera: *Camera, dt: f32) void {
         if (window.getKey(.w) == .press) {

@@ -78,7 +78,7 @@ pub const Cube = struct {
         self.texture.bind();
         self.mesh.bind();
 
-        self.shader.setu_1i("uTex", self.texture.slot);
+        self.shader.use_texture(self.texture.slot);
 
         context.applyTransform(self.shader, self.getModel());
         renderer.drawMesh(&self.mesh);
