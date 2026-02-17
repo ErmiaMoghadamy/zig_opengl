@@ -6,6 +6,7 @@ const Mesh = @import("graphics/mesh.zig").Mesh;
 const Shader = @import("graphics/shader.zig").Shader;
 const Camera = @import("camera.zig").Camera;
 const Cube = @import("objects/cube.zig").Cube;
+const Texture = @import("graphics/texture.zig").Texture;
 
 pub const Scene = struct {
     allocator: std.mem.Allocator,
@@ -13,40 +14,42 @@ pub const Scene = struct {
     camera: Camera,
 
     cubes: std.ArrayList(Cube),
+    base_shader: Shader = undefined,
+    base_texture: Texture = undefined,
+    base_texture2: Texture = undefined,
 
     pub fn init(allocator: std.mem.Allocator, renderer: *Renderer) !Scene {
         const aspect = @as(f32, @floatFromInt(800)) / @as(f32, @floatFromInt(600));
-        var scene = Scene{
+        return Scene{
             .allocator = allocator,
             .renderer = renderer,
             .cubes = try std.ArrayList(Cube).initCapacity(allocator, 0),
             .camera = Camera.init(aspect),
+            .base_shader = try Shader.init(@embedFile("shaders/vertex.glsl"), @embedFile("shaders/fragment.glsl")),
+            .base_texture = try Texture.init(allocator, "assets/diamond.png", 0),
+            .base_texture2 = try Texture.init(allocator, "assets/dirt.png", 0),
         };
-
-        for (0..7) |i| {
-            var x: i32 = @intCast(i);
-            x -= 3;
-            for (0..7) |j| {
-                var y: i32 = @intCast(j);
-                y -= 3;
-                var cube = try Cube.init("dirt", 0);
-                cube.transform.setPos(@floatFromInt(x), 0.0, @floatFromInt(y));
-                try scene.cubes.append(allocator, cube);
-            }
-        }
-
-        var cube = try Cube.init("diamond", 0);
-        cube.transform.setPos(0.0, 1.0, 0.0);
-        try scene.cubes.append(allocator, cube);
-
-        return scene;
     }
 
     pub fn addCube(self: *Scene) !void {
         const r1 = utils.genRandom();
         const r2 = utils.genRandom();
-        var cube = try Cube.init("diamond", 0);
-        cube.transform.setPos(@floatFromInt(r1), 1.0, @floatFromInt(r2));
+        const r3 = @mod(utils.genRandom(), 4);
+
+        var cube: Cube = undefined;
+        if (std.crypto.random.boolean()) {
+            cube = try Cube.init(
+                &self.base_texture,
+                &self.base_shader,
+            );
+        } else {
+            cube = try Cube.init(
+                &self.base_texture2,
+                &self.base_shader,
+            );
+        }
+
+        cube.transform.setPos(@floatFromInt(r1), @floatFromInt(r3), @floatFromInt(r2));
         try self.cubes.append(self.allocator, cube);
     }
 

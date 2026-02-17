@@ -19,6 +19,13 @@ pub const App = struct {
     timer: std.time.Timer,
     last_time_ns: u64,
 
+    dt_ns: u64 = 0, // last frame delta (ns)
+    fps_inst: f32 = 0, // instantaneous FPS
+    fps_avg: f32 = 0, // averaged FPS (updates ~1x/sec)
+    fps_smooth: f32 = 0, // smoothed FPS (EMA)
+    fps_accum_ns: u64 = 0, // accumulator for 1-second average window
+    fps_frames: u32 = 0,
+
     fb_w: i32 = width,
     fb_h: i32 = height,
     last_w: i32 = 0,
@@ -94,12 +101,13 @@ pub const App = struct {
         }
     }
 
-    fn handleInput(self: *App, dt: f64) !void {
+    fn handleInput(self: *App) !void {
+        const dt = self.timeDelta();
         if (self.window.getKey(.escape) == .press) {
             self.window.setShouldClose(true);
         }
 
-        if (self.window.getKey(.h) == .press) {
+        if (self.window.getKey(.g) == .press) {
             try self.scene.addCube();
         }
 
@@ -144,21 +152,62 @@ pub const App = struct {
         }
     }
 
-    fn timeDelta(self: *App) f64 {
-        const now = self.timer.read();
-        const delta_ns = now - self.last_time_ns;
-        self.last_time_ns = now;
+    pub fn tick(self: *App) void {
+        const now_ns: u64 = self.timer.read();
+        const dt_ns: u64 = now_ns - self.last_time_ns;
+        self.last_time_ns = now_ns;
 
-        const dt = @as(f32, @floatFromInt(delta_ns)) / 1_000_000_000.0;
+        self.dt_ns = dt_ns;
 
-        if (dt > 0.1) return 0.1;
+        // Instant FPS (can jump a lot)
+        if (dt_ns > 0) {
+            const dt_s: f32 = @as(f32, @floatFromInt(dt_ns)) / 1_000_000_000.0;
+            self.fps_inst = 1.0 / dt_s;
 
-        return dt;
+            // Smoothed FPS (EMA) - stable but responsive
+            const alpha: f32 = 0.1; // 0.05 slower, 0.2 faster
+            self.fps_smooth = self.fps_smooth * (1.0 - alpha) + self.fps_inst * alpha;
+        }
+
+        // 1-second average FPS (very stable)
+        self.fps_accum_ns += dt_ns;
+        self.fps_frames += 1;
+
+        if (self.fps_accum_ns >= 1_000_000_000) {
+            const accum_s: f32 = @as(f32, @floatFromInt(self.fps_accum_ns)) / 1_000_000_000.0;
+            self.fps_avg = @as(f32, @floatFromInt(self.fps_frames)) / accum_s;
+
+            // keep remainder so it doesn’t drift
+            self.fps_accum_ns -= 1_000_000_000;
+            self.fps_frames = 0;
+        }
     }
 
-    pub fn render(self: *App, dt: f64) void {
+    fn timeDelta(self: *App) f64 {
+        return @as(f32, @floatFromInt(self.dt_ns)) / 1_000_000_000.0;
+    }
+
+    pub fn drawDebugUI(self: *App) void {
+        const fb = self.window.getFramebufferSize();
+        zgui.backend.newFrame(@intCast(fb[0]), @intCast(fb[1]));
+
+        _ = zgui.begin("Debug", .{});
+
+        zgui.text("dt: {d:.3} ms", .{@as(f32, @floatFromInt(self.dt_ns)) / 1_000_000.0});
+        zgui.text("FPS inst: {d:.1}", .{self.fps_inst});
+        zgui.text("FPS smooth: {d:.1}", .{self.fps_smooth});
+        zgui.text("FPS avg(1s): {d:.1}", .{self.fps_avg});
+
+        zgui.end();
+        zgui.render();
+        zgui.backend.draw();
+    }
+
+    pub fn render(self: *App) void {
+        const dt = self.timeDelta();
         self.scene.update(dt);
         self.scene.render();
+        self.drawDebugUI();
     }
 
     pub fn run(self: *App) !void {
@@ -168,12 +217,14 @@ pub const App = struct {
 
         while (!self.window.shouldClose()) {
             glfw.pollEvents();
+
+            self.tick();
+
             self.handleResize();
 
-            const dt = self.timeDelta();
+            try self.handleInput();
+            self.render();
 
-            try self.handleInput(dt);
-            self.render(dt);
             self.window.swapBuffers();
         }
     }

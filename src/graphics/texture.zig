@@ -28,6 +28,7 @@ pub const Texture = struct {
         };
 
         try t.post_init();
+        errdefer t.deinit();
 
         return t;
     }

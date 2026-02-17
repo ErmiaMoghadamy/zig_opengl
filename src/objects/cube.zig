@@ -10,11 +10,11 @@ const Transform = @import("../graphics/transform.zig").Transform;
 
 pub const Cube = struct {
     mesh: Mesh,
-    shader: Shader,
-    texture: Texture,
+    shader: *Shader,
+    texture: *Texture,
     transform: Transform,
 
-    pub fn init(tname: []const u8, ts: i32) !Cube {
+    pub fn init(texture: *Texture, shader: *Shader) !Cube {
         const vertices = [_]f32{
             -0.5, -0.5, 0.5,  0.0, 0.0,
             0.5,  -0.5, 0.5,  1.0, 0.0,
@@ -53,16 +53,11 @@ pub const Cube = struct {
 
         const layout = [_]u32{ 3, 2 };
 
-        const path = try std.fmt.allocPrint(std.heap.raw_c_allocator, "./assets/{s}.png", .{tname});
-
         return Cube{
             .transform = Transform.init(),
             .mesh = Mesh.init(&vertices, &indices, &layout),
-            .shader = try Shader.init(
-                @embedFile("../shaders/vertex.glsl"),
-                @embedFile("../shaders/fragment.glsl"),
-            ),
-            .texture = try Texture.init(std.heap.raw_c_allocator, path, ts),
+            .shader = shader,
+            .texture = texture,
         };
     }
 
@@ -84,6 +79,6 @@ pub const Cube = struct {
         self.shader.setu_mat("uView", utils.mat2arr(camera.view));
         self.shader.setu_mat("uProjection", utils.mat2arr(camera.projection));
 
-        renderer.drawMesh(&self.mesh, &self.shader);
+        renderer.drawMesh(&self.mesh, self.shader);
     }
 };

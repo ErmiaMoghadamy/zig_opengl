@@ -19,7 +19,7 @@ pub const Renderer = struct {
 
     pub fn drawMesh(self: *Renderer, mesh: *Mesh, shader: *Shader) void {
         _ = self;
-        shader.bind();
+        shader.*.bind();
         mesh.bind();
         gl.drawElements(gl.TRIANGLES, mesh.index_count, gl.UNSIGNED_INT, null);
     }
