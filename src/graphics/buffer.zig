@@ -11,6 +11,11 @@ pub const VertexBuffer = struct {
         return vbo;
     }
 
+    pub fn deinit(self: *VertexBuffer) void {
+        gl.deleteBuffers(1, &self.id);
+        self.id = 0;
+    }
+
     pub fn bind(self: VertexBuffer) void {
         gl.bindBuffer(gl.ARRAY_BUFFER, self.id);
     }
@@ -33,6 +38,11 @@ pub const IndexBuffer = struct {
         gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, @intCast(@sizeOf(u32) * indices.len), indices.ptr, gl.STATIC_DRAW);
 
         return ibo;
+    }
+
+    pub fn deinit(self: *IndexBuffer) void {
+        gl.deleteBuffers(1, &self.id);
+        self.id = 0;
     }
 
     pub fn bind(self: IndexBuffer) void {

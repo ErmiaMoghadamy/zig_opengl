@@ -61,6 +61,10 @@ pub const Cube = struct {
         };
     }
 
+    pub fn deinit(self: *Cube) void {
+        self.mesh.deinit();
+    }
+
     pub fn getModel(self: Cube) zm.Mat {
         return self.transform.matrix();
     }

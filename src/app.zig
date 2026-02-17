@@ -26,11 +26,8 @@ pub const App = struct {
     fps_accum_ns: u64 = 0, // accumulator for 1-second average window
     fps_frames: u32 = 0,
 
-    fb_w: i32 = width,
-    fb_h: i32 = height,
     last_w: i32 = 0,
     last_h: i32 = 0,
-    pending_resize: bool = true,
 
     scene: Scene,
 
@@ -144,11 +141,11 @@ pub const App = struct {
         }
 
         if (self.window.getKey(.space) == .press) {
-            self.scene.camera.moveY(0.1);
+            self.scene.camera.moveY(@floatCast(2 * dt));
         }
 
         if (self.window.getKey(.left_control) == .press) {
-            self.scene.camera.moveY(-0.1);
+            self.scene.camera.moveY(@floatCast(-2 * dt));
         }
     }
 
@@ -184,7 +181,7 @@ pub const App = struct {
     }
 
     fn timeDelta(self: *App) f64 {
-        return @as(f32, @floatFromInt(self.dt_ns)) / 1_000_000_000.0;
+        return @as(f64, @floatFromInt(self.dt_ns)) / 1_000_000_000.0;
     }
 
     pub fn drawDebugUI(self: *App) void {

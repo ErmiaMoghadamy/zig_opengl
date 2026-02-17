@@ -27,7 +27,7 @@ pub const Scene = struct {
             .camera = Camera.init(aspect),
             .base_shader = try Shader.init(@embedFile("shaders/vertex.glsl"), @embedFile("shaders/fragment.glsl")),
             .base_texture = try Texture.init(allocator, "assets/diamond.png", 0),
-            .base_texture2 = try Texture.init(allocator, "assets/dirt.png", 0),
+            .base_texture2 = try Texture.init(allocator, "assets/dirt.png", 1),
         };
     }
 
@@ -51,7 +51,15 @@ pub const Scene = struct {
     }
 
     pub fn deinit(self: *Scene) void {
+        for (self.cubes.items) |*cube| {
+            cube.deinit();
+        }
+
         self.cubes.deinit(self.allocator);
+
+        self.base_shader.deinit();
+        self.base_texture.deinit();
+        self.base_texture2.deinit();
     }
 
     pub fn update(self: *Scene, dt: f64) void {

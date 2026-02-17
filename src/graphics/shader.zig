@@ -49,7 +49,7 @@ pub const Shader = struct {
             var info_log: [1024]u8 = undefined;
             var log_len: gl.Sizei = 0;
             gl.getShaderInfoLog(fs, info_log.len, &log_len, &info_log[0]);
-            std.debug.print("Vertex shader error:\n{s}\n", .{info_log[0..@intCast(log_len)]});
+            std.debug.print("Fragment shader error:\n{s}\n", .{info_log[0..@intCast(log_len)]});
             return error.FragmentShaderCompilationFailed;
         }
 
@@ -68,9 +68,10 @@ pub const Shader = struct {
         var link_success: i32 = 0;
         gl.getProgramiv(id, gl.LINK_STATUS, &link_success);
         if (link_success == 0) {
-            const info_log: [1024]u8 = undefined;
-            gl.getProgramInfoLog(id, info_log.len, null, @ptrCast(@constCast(&info_log)));
-            std.debug.print("Program Linking Error: {s}\n", .{info_log});
+            var info_log: [1024]u8 = undefined;
+            var log_len: gl.Sizei = 0;
+            gl.getProgramInfoLog(id, info_log.len, &log_len, &info_log[0]);
+            std.debug.print("Program Linking Error: {s}\n", .{info_log[0..@intCast(log_len)]});
             return ShaderError.ProgramLinkingFailed;
         }
 
@@ -80,7 +81,12 @@ pub const Shader = struct {
         return Shader{ .id = id };
     }
 
-    pub fn setu_mat(self: Shader, name: []const u8, mat: [16]f32) void {
+    pub fn deinit(self: *Shader) void {
+        gl.deleteProgram(self.id);
+        self.id = 0;
+    }
+
+    pub fn setu_mat(self: Shader, name: [:0]const u8, mat: [16]f32) void {
         self.bind();
 
         const location = gl.getUniformLocation(self.id, name.ptr);
@@ -88,7 +94,7 @@ pub const Shader = struct {
         gl.uniformMatrix4fv(location, 1, 0, &mat);
     }
 
-    pub fn setu_1i(self: Shader, name: []const u8, value: i32) void {
+    pub fn setu_1i(self: Shader, name: [:0]const u8, value: i32) void {
         self.bind();
 
         const location = gl.getUniformLocation(self.id, name.ptr);

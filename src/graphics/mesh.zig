@@ -19,6 +19,12 @@ pub const Mesh = struct {
         };
     }
 
+    pub fn deinit(self: *Mesh) void {
+        self.vao.deinit();
+        self.vbo.deinit();
+        self.ibo.deinit();
+    }
+
     pub fn bind(self: Mesh) void {
         self.vao.bind();
         self.vbo.bind();

@@ -17,7 +17,7 @@ pub const Transform = struct {
         const T = zm.translationV(self.position);
         const rx = zm.rotationX(self.rotation[0]);
         const ry = zm.rotationY(self.rotation[1]);
-        const rz = zm.rotationY(self.rotation[2]);
+        const rz = zm.rotationZ(self.rotation[2]);
 
         const R = zm.mul(rz, zm.mul(rx, ry));
         const S = zm.scalingV(self.scale);

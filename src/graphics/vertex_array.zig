@@ -19,6 +19,11 @@ pub const VertexArray = struct {
         return vao;
     }
 
+    pub fn deinit(self: *VertexArray) void {
+        gl.deleteVertexArrays(1, &self.id);
+        self.id = 0;
+    }
+
     pub fn setup_layout(self: *VertexArray) void {
         var strides: c_int = 0;
 
