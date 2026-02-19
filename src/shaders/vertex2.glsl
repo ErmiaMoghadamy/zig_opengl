@@ -7,6 +7,5 @@ varying vec3 v_color;
 
 void main() {
     gl_Position = vec4(in_position, 1.0);
-    gl_Position.xyz *= 2;
     v_color = in_color;
 }
