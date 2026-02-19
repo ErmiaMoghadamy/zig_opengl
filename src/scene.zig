@@ -6,6 +6,7 @@ const Camera = @import("camera.zig").Camera;
 const Cube = @import("objects/cube.zig").Cube;
 const Texture = @import("graphics/texture.zig").Texture;
 const RenderContext = @import("graphics/render_context.zig").RenderContext;
+const Mesh = @import("graphics/mesh.zig").Mesh;
 
 pub const Scene = struct {
     allocator: std.mem.Allocator,
@@ -17,8 +18,22 @@ pub const Scene = struct {
     base_texture: Texture = undefined,
     base_texture2: Texture = undefined,
 
+    m: Mesh,
+    ts: Shader,
+
     pub fn init(allocator: std.mem.Allocator, renderer: *Renderer) !Scene {
         const aspect = @as(f32, @floatFromInt(800)) / @as(f32, @floatFromInt(600));
+
+        const v = [_]f32{
+            0.5,  0.0, 0.0, 1.0, 0.0, 0.0,
+            -0.5, 0.0, 0.0, 0.0, 1.0, 0.0,
+            0.0,  0.5, 0.0, 0.0, 0.0, 1.0,
+        };
+
+        const in = [_]u32{ 0, 1, 2 };
+
+        const l = [_]u32{ 3, 3 };
+
         return Scene{
             .allocator = allocator,
             .renderer = renderer,
@@ -27,6 +42,8 @@ pub const Scene = struct {
             .base_shader = try Shader.init(@embedFile("shaders/vertex.glsl"), @embedFile("shaders/fragment.glsl")),
             .base_texture = try Texture.init(allocator, "assets/diamond.png", 0),
             .base_texture2 = try Texture.init(allocator, "assets/dirt.png", 1),
+            .m = Mesh.init(&v, &in, &l),
+            .ts = try Shader.init(@embedFile("shaders/vertex2.glsl"), @embedFile("shaders/fragment2.glsl")),
         };
     }
 
@@ -77,5 +94,9 @@ pub const Scene = struct {
         for (self.cubes.items) |*cube| {
             cube.draw(self.renderer, context);
         }
+
+        self.m.bind();
+        self.ts.bind();
+        self.renderer.drawMesh(&self.m);
     }
 };

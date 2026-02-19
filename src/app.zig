@@ -34,7 +34,7 @@ pub const App = struct {
         glfw.makeContextCurrent(window);
         glfw.swapInterval(1);
 
-        try zgl.loadCoreProfile(glfw.getProcAddress, 3, 3);
+        try zgl.loadCoreProfile(glfw.getProcAddress, 4, 6);
 
         zgui.init(allocator);
         errdefer zgui.deinit();

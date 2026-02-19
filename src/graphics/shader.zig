@@ -13,6 +13,7 @@ pub const ShaderError = error{
 
 pub const Shader = struct {
     id: u32,
+    uniform_cache: std.StringHashMap(i32),
 
     pub fn init(vs_src: [*c]const u8, fs_src: [*c]const u8) ShaderError!Shader {
         const vs = gl.createShader(gl.VERTEX_SHADER);
@@ -78,7 +79,10 @@ pub const Shader = struct {
         gl.deleteShader(vs);
         gl.deleteShader(fs);
 
-        return Shader{ .id = id };
+        return Shader{
+            .id = id,
+            .uniform_cache = std.StringHashMap(i32).init(std.heap.page_allocator),
+        };
     }
 
     pub fn deinit(self: *Shader) void {
@@ -86,10 +90,20 @@ pub const Shader = struct {
         self.id = 0;
     }
 
-    pub fn use_texture(self: Shader, textureSlot: i32) void {
+    pub fn getUniformLoc(self: *Shader, name: [:0]const u8) i32 {
+        if (self.uniform_cache.get(name)) |loc| {
+            return loc;
+        }
+
+        const location = gl.getUniformLocation(self.id, name.ptr);
+        self.uniform_cache.put(name, location) catch unreachable;
+        return location;
+    }
+
+    pub fn use_texture(self: *Shader, textureSlot: i32) void {
         self.bind();
 
-        const location = gl.getUniformLocation(self.id, "uTex");
+        const location = self.getUniformLoc("uTex");
 
         gl.uniform1i(location, textureSlot);
     }
