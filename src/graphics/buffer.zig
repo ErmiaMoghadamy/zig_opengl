@@ -1,13 +1,14 @@
 const gl = @import("zopengl").bindings;
+const Vertex = @import("vertex_array.zig").Vertex;
 
 pub const VertexBuffer = struct {
     id: u32,
 
-    pub fn init(vertices: []const f32) VertexBuffer {
+    pub fn init(vertices: []Vertex) VertexBuffer {
         var vbo = VertexBuffer{ .id = 0 };
         gl.genBuffers(1, &vbo.id);
         gl.bindBuffer(gl.ARRAY_BUFFER, vbo.id);
-        gl.bufferData(gl.ARRAY_BUFFER, @as(c_int, @intCast(vertices.len * @sizeOf(f32))), vertices.ptr, gl.STATIC_DRAW);
+        gl.bufferData(gl.ARRAY_BUFFER, @as(c_int, @intCast(vertices.len * @sizeOf(Vertex))), vertices.ptr, gl.STATIC_DRAW);
         return vbo;
     }
 

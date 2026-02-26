@@ -1,5 +1,5 @@
-const root = @import("zypher");
+const zigl = @import("zypher");
 
 pub fn main() !void {
-    try root.run();
+    try zigl.run();
 }

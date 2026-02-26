@@ -30,8 +30,10 @@ pub const Shader = struct {
         if (vs_success == 0) {
             var info_log: [1024]u8 = undefined;
             var log_len: gl.Sizei = 0;
+
             gl.getShaderInfoLog(vs, info_log.len, &log_len, &info_log[0]);
             std.debug.print("Vertex Shader Compilation Error: {s}\n", .{info_log[0..@intCast(log_len)]});
+
             return error.VertexShaderCompilationFailed;
         }
 
@@ -86,6 +88,7 @@ pub const Shader = struct {
     }
 
     pub fn deinit(self: *Shader) void {
+        self.uniform_cache.deinit();
         gl.deleteProgram(self.id);
         self.id = 0;
     }
@@ -100,15 +103,23 @@ pub const Shader = struct {
         return location;
     }
 
-    pub fn use_texture(self: *Shader, textureSlot: i32) void {
+    pub fn set_vec3(self: Shader, name: [:0]const u8, vec: [3]f32) void {
         self.bind();
 
-        const location = self.getUniformLoc("uTex");
+        const location = gl.getUniformLocation(self.id, name.ptr);
 
-        gl.uniform1i(location, textureSlot);
+        gl.uniform3fv(location, 1, &vec);
     }
 
-    pub fn setu_mat(self: Shader, name: [:0]const u8, mat: [16]f32) void {
+    pub fn set_vec4(self: Shader, name: [:0]const u8, vec: [4]f32) void {
+        self.bind();
+
+        const location = gl.getUniformLocation(self.id, name.ptr);
+
+        gl.uniform4fv(location, 1, &vec);
+    }
+
+    pub fn set_mat(self: Shader, name: [:0]const u8, mat: [16]f32) void {
         self.bind();
 
         const location = gl.getUniformLocation(self.id, name.ptr);
@@ -116,7 +127,7 @@ pub const Shader = struct {
         gl.uniformMatrix4fv(location, 1, 0, &mat);
     }
 
-    pub fn setu_1i(self: Shader, name: [:0]const u8, value: i32) void {
+    pub fn set_int(self: Shader, name: [:0]const u8, value: i32) void {
         self.bind();
 
         const location = gl.getUniformLocation(self.id, name.ptr);

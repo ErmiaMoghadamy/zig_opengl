@@ -1,13 +1,19 @@
+const zstbi = @import("zstbi");
 const std = @import("std");
 const gl = @import("zopengl").bindings;
-const utils = @import("../utils.zig");
+
+const RgbaImage = struct {
+    width: u32,
+    height: u32,
+    pixels: []u8, // RGBA8, len = width * height * 4
+};
 
 pub const Texture = struct {
-    id: c_uint,
+    id: u32,
     filepath: []const u8,
-    width: c_int,
-    height: c_int,
-    bpp: c_int,
+    width: u32,
+    height: u32,
+    bpp: u32,
 
     // cpu buffer
     localBuffer: []u8 = &[_]u8{},
@@ -47,7 +53,7 @@ pub const Texture = struct {
     pub fn post_init(self: *Texture) !void {
         // load image cpu buffer
 
-        const img = try utils.loadPngRgba8(self.allocator, self.filepath);
+        const img = try Texture.loadPngRgba8(self.allocator, self.filepath);
         self.width = @intCast(img.width);
         self.height = @intCast(img.height);
         self.localBuffer = img.pixels;
@@ -62,7 +68,7 @@ pub const Texture = struct {
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, self.width, self.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, self.localBuffer.ptr);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, @intCast(self.width), @intCast(self.height), 0, gl.RGBA, gl.UNSIGNED_BYTE, self.localBuffer.ptr);
 
         gl.generateMipmap(gl.TEXTURE_2D);
 
@@ -105,5 +111,26 @@ pub const Texture = struct {
     pub fn unbind(self: Texture) void {
         _ = self;
         gl.bindTexture(gl.TEXTURE_2D, 0);
+    }
+
+    pub fn loadPngRgba8(allocator: std.mem.Allocator, path: []const u8) !RgbaImage {
+        zstbi.init(allocator);
+        defer zstbi.deinit();
+
+        // set flip vertically
+        zstbi.setFlipVerticallyOnLoad(true);
+
+        const zpath = try std.mem.concatWithSentinel(allocator, u8, &.{path}, 0);
+        defer allocator.free(zpath);
+
+        var img = try zstbi.Image.loadFromFile(zpath, 4);
+        defer img.deinit();
+
+        const w: u32 = @intCast(img.width);
+        const h: u32 = @intCast(img.height);
+
+        const out: []u8 = try allocator.dupe(u8, img.data);
+
+        return .{ .width = w, .height = h, .pixels = out };
     }
 };

@@ -1,15 +1,18 @@
 const std = @import("std");
 const gl = @import("zopengl").bindings;
 
+pub const Vertex = struct {
+    position: [3]f32,
+    color: [4]f32,
+    texture_coords: [2]f32,
+    normals: [3]f32,
+};
+
 pub const VertexArray = struct {
     id: u32,
-    layout: []const u32,
 
-    pub fn init(layout: []const u32) VertexArray {
-        var vao = VertexArray{
-            .id = 0,
-            .layout = layout,
-        };
+    pub fn init() VertexArray {
+        var vao = VertexArray{ .id = 0 };
 
         gl.genVertexArrays(1, &vao.id);
         gl.bindVertexArray(vao.id);
@@ -25,25 +28,21 @@ pub const VertexArray = struct {
     }
 
     pub fn setup_layout(self: *VertexArray) void {
-        var strides: c_int = 0;
-
-        for (self.layout) |element| {
-            strides += @intCast(element * @sizeOf(f32));
-        }
+        const strides: c_int = @sizeOf(Vertex);
 
         gl.bindVertexArray(self.id);
 
-        var index: u32 = 0;
-        var offset: u32 = 0;
+        gl.vertexAttribPointer(0, 3, gl.FLOAT, gl.FALSE, strides, @ptrFromInt(0));
+        gl.enableVertexAttribArray(0);
 
-        for (self.layout) |element| {
-            const size: c_int = @intCast(element);
-            gl.vertexAttribPointer((index), size, gl.FLOAT, gl.FALSE, strides, @ptrFromInt(offset * @sizeOf(f32)));
-            gl.enableVertexAttribArray(index);
+        gl.vertexAttribPointer(1, 4, gl.FLOAT, gl.FALSE, strides, @ptrFromInt(@offsetOf(Vertex, "color")));
+        gl.enableVertexAttribArray(1);
 
-            index += 1;
-            offset += element;
-        }
+        gl.vertexAttribPointer(2, 2, gl.FLOAT, gl.FALSE, strides, @ptrFromInt(@offsetOf(Vertex, "texture_coords")));
+        gl.enableVertexAttribArray(2);
+
+        gl.vertexAttribPointer(3, 3, gl.FLOAT, gl.FALSE, strides, @ptrFromInt(@offsetOf(Vertex, "normals")));
+        gl.enableVertexAttribArray(3);
     }
 
     pub fn bind(self: VertexArray) void {
